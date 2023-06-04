@@ -80,8 +80,63 @@ class ThermostatTest {
     }
 
     // Clause Coverage (CC)
-    //  TODO: Add tests for clause coverage
+    // Choose 2 testcases
+    //            | a | b && c | b | c | d | (a || (b && c)) && d |
+    // testcase1: | T |   F    | F | F | T |          T           |
+    // testcase2: | F |   T    | T | T | F |          F           |
+    @Test
+    public void testTurnHeaterOn_CC_testcase1() {
+        Thermostat thermostat = new Thermostat();
+        ProgrammedSettings settings = new ProgrammedSettings();
 
+        // testcase1: a = T, b && c = F, b = F, d = T, P = (a || (b && c)) && d = T
+
+        // a = T (curTemp < dTemp - thresholdDiff)
+        thermostat.setCurrentTemp(50);
+        thermostat.setDay(DayType.WEEKDAY);
+        thermostat.setPeriod(Period.MORNING);
+        thermostat.setThresholdDiff(5);
+
+        // b = F (override)
+        thermostat.setOverride(false);
+
+        // c = F (curTemp < overTemp - thresholdDiff)
+        thermostat.setOverTemp(50);
+
+        // d = T (timeSinceLastRun > minLag)
+        thermostat.setTimeSinceLastRun(25);
+        thermostat.setMinLag(15);
+
+        // P = (a || (b && c)) && d = T
+        assertTrue(thermostat.turnHeaterOn(settings));
+    }
+
+    @Test
+    public void testTurnHeaterOn_CC_testcase2() {
+        Thermostat thermostat = new Thermostat();
+        ProgrammedSettings settings = new ProgrammedSettings();
+
+        // testcase2: a = F, b && c = T, b = T, d = F, P = (a || (b && c)) && d = F
+
+        // a = F (curTemp < dTemp - thresholdDiff)
+        thermostat.setCurrentTemp(70);
+        thermostat.setDay(DayType.WEEKDAY);
+        thermostat.setPeriod(Period.MORNING);
+        thermostat.setThresholdDiff(5);
+
+        // b = T (override)
+        thermostat.setOverride(true);
+
+        // c = T (curTemp < overTemp - thresholdDiff)
+        thermostat.setOverTemp(80);
+
+        // d = F (timeSinceLastRun > minLag)
+        thermostat.setTimeSinceLastRun(15);
+        thermostat.setMinLag(25);
+
+        // P = (a || (b && c)) && d = F
+        assertFalse(thermostat.turnHeaterOn(settings));
+    }
 
     // Correlated Active Clause Coverage (CACC)
     /*
